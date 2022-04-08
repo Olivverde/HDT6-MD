@@ -1,5 +1,5 @@
 from locale import normalize
-
+import random
 import seaborn as sns
 from matplotlib import pyplot as plt
 import pandas as pd
@@ -76,15 +76,13 @@ class main(object):
         return df
 
     def train_test(self):
-        df = self.groupBy_ResponseVar()
-        y = df.pop('SaleRange')
+        df = self.dummification()
+        y = df.pop('High')
         X = df[['LotArea','OverallQual', 'TotRmsAbvGrd', 'GarageCars', 'FullBath']]
-
-        
+        random.seed(123)
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, train_size=0.7)
 
         return  X_train, X_test, y_train, y_test, X, y
-
 
     def normalizeData(self):
         X_train, X_test,y_train, y_test, X, y = self.train_test()
@@ -92,7 +90,6 @@ class main(object):
         model = make_pipeline(StandardScaler(), LogisticRegression())
         cv_result = cross_validate(model,X_train, y_train, cv=5 )
         return cv_result
-
 
     def treeDepth(self):
         
@@ -160,7 +157,6 @@ class main(object):
         print ("Precision:", metrics.precision_score(y_test,y_pred,average="weighted", zero_division=1) )
         print ("Recall: ", metrics.recall_score(y_test,y_pred,average="weighted", zero_division=1))
         
-
     # CAMBIOOOOOOO
     def linear_regression(self):
         X_train, X_test,y_train, y_test, X, y = self.train_test()
@@ -264,6 +260,21 @@ class main(object):
         score_pred = metrics.accuracy_score(y_test, preds)
         print("Metrica en Test", score_pred)
 
+    def logReg(self):
+        X_train, X_test, y_train, y_test, X, y = self.train_test()
+        logReg = LogisticRegression(solver='liblinear')
+        logReg.fit(X_train,y_train)
+        y_pred = logReg.predict(X_test)
+        y_proba = logReg.predict_proba(X)[:,1]
+        cm = confusion_matrix(y_test,y_pred)
+
+        accuracy=accuracy_score(y_test,y_pred)
+        precision =precision_score(y_test, y_pred,average='micro')
+        recall =  recall_score(y_test, y_pred,average='micro')
+        f1 = f1_score(y_test,y_pred,average='micro')
+        print('Matriz de confusión para detectar Precio Alto\n',cm)
+        print('Accuracy: ',accuracy)
+
 driver = main('train.csv')
-driver.dummification()
+driver.logReg()
 
