@@ -23,6 +23,7 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score ,precision_score,recall_score,f1_score
+from statsmodels.stats.outliers_influence import variance_inflation_factor 
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -114,7 +115,7 @@ class main(object):
         # EL DEPTH ES DE 3
 
     def decision_tree(self):
-        # CAMBIOOOOO2
+
         X_train, X_test,y_train, y_test, X, y = self.train_test()
        
 
@@ -146,7 +147,7 @@ class main(object):
         tree.export_graphviz(rt, out_file='regression_tree.dot', feature_names=column_names, class_names=True, max_depth=2)
 
     def random_forest(self):
-        #CAMBIOOO2
+
         X_train, X_test,y_train, y_test, X, y = self.train_test()
        
         rf = RandomForestClassifier(max_depth=3, random_state=10)
@@ -157,7 +158,7 @@ class main(object):
         print ("Precision:", metrics.precision_score(y_test,y_pred,average="weighted", zero_division=1) )
         print ("Recall: ", metrics.recall_score(y_test,y_pred,average="weighted", zero_division=1))
         
-    # CAMBIOOOOOOO
+
     def linear_regression(self):
         X_train, X_test,y_train, y_test, X, y = self.train_test()
         y_tr = y_train.values.reshape(-1, 1)
@@ -191,13 +192,17 @@ class main(object):
         plt.show()
 
     def multicollinearity(self):
-        X_train, X_test,y_train, y_test, X, y = self.train_test()
+        df = self.groupBy_ResponseVar()
+        column_names = ['LotArea','OverallQual', 'TotRmsAbvGrd', 'GarageCars', 'FullBath']
+        df['SaleRange'] = df['SaleRange'].map({'Low':0, 'Medium':1, 'High':2})
+        X = df[['SaleRange', 'LotArea','OverallQual', 'TotRmsAbvGrd', 'GarageCars', 'FullBath']]
         
         vif_data = pd.DataFrame()
         vif_data['feature'] = X.columns
         vif_data['VIF'] = [variance_inflation_factor(X, i) for i in range(len(X.columns))]
 
         print(vif_data)
+        
     def residualAndSize(self, y_t, y_pred):
         residuales = y_t - y_pred
         return len(residuales), residuales
@@ -274,7 +279,16 @@ class main(object):
         f1 = f1_score(y_test,y_pred,average='micro')
         print('Matriz de confusión para detectar Precio Alto\n',cm)
         print('Accuracy: ',accuracy)
+        
+    def correlacion(self):
+        df = self.groupBy_ResponseVar()
+        df['SaleRange'] = df['SaleRange'].map({'Low':0, 'Medium':1, 'High':2})
+        
+        print('Correlación Pearson: ', df['SaleRange'].corr(df['LotArea'], method='pearson'))
+        print('Correlación spearman: ', df['SaleRange'].corr(df['LotArea'], method='spearman'))
+        print('Correlación kendall: ', df['SaleRange'].corr(df['LotArea'], method='kendall'))
+   
 
 driver = main('train.csv')
-driver.logReg()
+driver.correlacion()
 
